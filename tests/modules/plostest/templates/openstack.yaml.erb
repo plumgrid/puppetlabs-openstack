@@ -16,11 +16,19 @@ openstack::network::external::dns: 192.168.22.2
 openstack::network::neutron::private: '10.0.0.0/24'
 
 ######## Fixed IPs (controllers)
-
-openstack::controller::address::api: '192.168.11.4'
-openstack::controller::address::management: '172.16.33.4'
-openstack::storage::address::api: '192.168.11.4'
-openstack::storage::address::management: '172.16.33.4'
+<%- control_set = false; storage_set = false -%>
+<%- @scenario['nodes'].each_pair do |nodename, nodedata| -%>
+  <%- if ((not control_set) and nodedata.has_key?('is_control') and nodedata['is_control']) -%>
+    <%- control_set = true -%>
+openstack::controller::address::api: '<%= nodedata["api_address"] %>'
+openstack::controller::address::management: '<%= nodedata["admin_address"] %>'
+  <%- end -%>
+  <%- if (nodedata.has_key?('is_storage') and nodedata['is_storage']) -%>
+    <%- storage_set = true -%>
+openstack::storage::address::api: '<%= nodedata["api_address"] %>'
+openstack::storage::address::management: '<%= nodedata["admin_address"] %>'
+  <%- end -%>
+<%- end -%>
 
 ######## Database
 
@@ -36,7 +44,7 @@ openstack::rabbitmq::password: 'pose-vix'
 ######## Keystone
 
 openstack::keystone::admin_token: 'sosp-kyl'
-openstack::keystone::admin_email: 'chris.hoge@puppetlabs.com'
+openstack::keystone::admin_email: 'example@puppetlabs.com'
 openstack::keystone::admin_password: 'fyby-tet'
 
 openstack::keystone::tenants:
