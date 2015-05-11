@@ -5,6 +5,6 @@ class openstack::profile::neutron::agent {
   if $::openstack::config::enable_plumgrid {
     include ::openstack::common::plumgrid
   } else {
-    include ::openstack::common::ovs
+    include ::openstack::common::ml2::ovs
   }
 }
