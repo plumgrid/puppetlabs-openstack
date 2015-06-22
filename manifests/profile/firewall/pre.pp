@@ -19,7 +19,7 @@ class openstack::profile::firewall::pre {
     }
   }
 
-  class { '::firewall': }
+  include ::firewall
 
   # Default firewall rules, based on the RHEL defaults
   firewall { '0001 - related established':

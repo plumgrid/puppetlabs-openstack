@@ -6,7 +6,7 @@ Version 4.1.0 / 2014.1 / Icehouse
 ####Table of Contents
 
 1. [Overview - What is the puppetlabs-openstack module?](#overview)
-2. [A Note on Versioniong](#versioning)
+2. [A Note on Versioning](#versioning)
 2. [Module Description - What does the module do?](#module-description)
 3. [Setup - The basics of getting started with OpenStack](#setup)
     * [Setup Requirements](#setup-requirements)
@@ -197,7 +197,8 @@ and maintainable OpenStack deployments.
 
 * High availability and SSL-enabled endpoints are not provided by this module.
 
-Addressing these limitations is planned for a forthcoming release of the puppetlabs-openstack module.
+* The puppet-tempest module will not be installed as a dependency if this module is installed via the puppet module tool. The reasoning for this is that the puppet-tempest module is currently broken for Puppet Enterprise >= 3.3, which will also break installation of this module. puppet-tempest is not scheduled for release anytime soon. Use r10k with the Puppetfile, download from the puppet-tempest source, or puppet module install stackforge/puppet-tempest (on FOSS puppet) before using the tempest role.
+
 
 ##License
 Puppet Labs OpenStack - A Puppet Module for a Multi-Node OpenStack Icehouse Installation.
