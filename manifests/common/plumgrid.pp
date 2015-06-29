@@ -1,6 +1,7 @@
 # Common class used by Plumgrid Neutron Plugin.
 
 class openstack::common::plumgrid {
+
   # forward all ipv4 traffic
   # this is required for the vms to pass through the gateways public interface
   sysctl::value { 'net.ipv4.ip_forward': value => '1' }
@@ -11,6 +12,6 @@ class openstack::common::plumgrid {
     owner   => root,
     group   => root,
     mode    => '0440',
-    content => 'nova ALL=(root) NOPASSWD: /opt/pg/bin/ifc_ctl_pp *\n',
+    content => "nova ALL=(root) NOPASSWD: /opt/pg/bin/ifc_ctl_pp *\n",
   }
 }
