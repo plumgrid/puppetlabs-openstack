@@ -20,6 +20,8 @@ class openstack::profile::neutron::router {
   class { '::neutron::agents::dhcp':
     debug   => $::openstack::config::debug,
     enabled => true,
+    enable_isolated_metadata => true,
+    enable_metadata_network  => true,
   }
 
   class { '::neutron::agents::metadata':
@@ -48,27 +50,5 @@ class openstack::profile::neutron::router {
   class { '::neutron::services::fwaas':
     enabled => true,
   }
-
-  $external_bridge = 'brex'
-  $external_network = $::openstack::config::network_external
-  $external_device = device_for_network($external_network)
-  vs_bridge { $external_bridge:
-    ensure => present,
-  }
-  if $external_device != $external_bridge {
-    vs_port { $external_device:
-      ensure => present,
-      bridge => $external_bridge,
-    }
-  } else {
-    # External bridge already has the external device's IP, thus the external
-    # device has already been linked
-  }
-
-  $defaults = { 'ensure' => 'present' }
-  create_resources('neutron_network', $::openstack::config::networks, $defaults)
-  create_resources('neutron_subnet', $::openstack::config::subnets, $defaults)
-  create_resources('neutron_router', $::openstack::config::routers, $defaults)
-  create_resources('neutron_router_interface', $::openstack::config::router_interfaces, $defaults)
 
 }

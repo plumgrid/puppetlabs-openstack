@@ -12,9 +12,12 @@ class openstack::profile::nova::api {
 
   class { '::nova::keystone::auth':
     password         => $::openstack::config::nova_password,
-    public_address   => $::openstack::config::controller_address_api,
-    admin_address    => $::openstack::config::controller_address_management,
-    internal_address => $::openstack::config::controller_address_management,
+    public_url       => "http://$::openstack::config::controller_address_api:8774/v2/%(tenant_id)s",
+    admin_url        => "http://$controller_management_address:8774/v2/%(tenant_id)s",
+    internal_url     => "http://$controller_management_address:8774/v2/%(tenant_id)s",
+    ec2_public_url   => "http://$controller_management_address:8773/services/Cloud",
+    ec2_admin_url    => "http://$controller_management_address:8773/services/Cloud",
+    ec2_internal_url => "http://$controller_management_address:8773/services/Cloud",
     region           => $::openstack::config::region,
   }
 
@@ -22,9 +25,11 @@ class openstack::profile::nova::api {
 
   class { '::nova::api':
     admin_password                       => $::openstack::config::nova_password,
-    auth_host                            => $controller_management_address,
+    auth_uri                             => "http://$controller_management_address:5000/",
+    identity_uri                         => "http://$controller_management_address:35357/",
     neutron_metadata_proxy_shared_secret => $::openstack::config::neutron_shared_secret,
     enabled                              => true,
+    default_floating_pool                => 'public',
   }
 
   class { '::nova::compute::neutron': }

@@ -6,6 +6,12 @@ class openstack::profile::mongodb {
     manage_package_repo => true,
   }
 
+  file { "$::mongodb::params::pidfilepath":
+    ensure => present,
+    mode   => '0777',
+    before => Service["$::mongodb::params::service_name"]
+  }
+
   class { '::mongodb::server':
     bind_ip => ['127.0.0.1', $::openstack::config::controller_address_management],
   }

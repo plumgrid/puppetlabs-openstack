@@ -6,19 +6,10 @@ class openstack::profile::neutron::server {
 
   include ::openstack::common::neutron
 
-  $tenant_network_type           = $::openstack::config::neutron_tenant_network_type # ['gre']
-  $type_drivers                  = $::openstack::config::neutron_type_drivers # ['gre']
-  $mechanism_drivers             = $::openstack::config::neutron_mechanism_drivers # ['openvswitch']
-  $tunnel_id_ranges              = $::openstack::config::neutron_tunnel_id_ranges # ['1:1000']
   $controller_management_address = $::openstack::config::controller_address_management
 
   if ($::openstack::config::neutron_core_plugin == 'ml2') {
-    class  { '::neutron::plugins::ml2':
-      type_drivers         => $type_drivers,
-      tenant_network_types => $tenant_network_type,
-      mechanism_drivers    => $mechanism_drivers,
-      tunnel_id_ranges     => $tunnel_id_ranges
-    }
+
   } elsif ($::openstack::config::neutron_core_plugin == 'plumgrid') {
     $user = $::openstack::config::mysql_user_neutron
     $pass = $::openstack::config::mysql_pass_neutron
@@ -54,10 +45,10 @@ class openstack::profile::neutron::server {
 
   anchor { 'neutron_common_first': } ->
   class { '::neutron::server::notifications':
-    nova_url            => "http://${controller_management_address}:8774/v2/",
-    nova_admin_auth_url => "http://${controller_management_address}:35357/v2.0/",
-    nova_admin_password => $::openstack::config::nova_password,
-    nova_region_name    => $::openstack::config::region,
+    nova_url    => "http://${controller_management_address}:8774/v2",
+    auth_url    => "http://${controller_management_address}:35357",
+    password    => $::openstack::config::nova_password,
+    region_name => $::openstack::config::region,
   } ->
   anchor { 'neutron_common_last': }
 

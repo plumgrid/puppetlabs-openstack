@@ -18,9 +18,8 @@ class openstack::profile::glance::api {
 
   class { '::glance::api':
     keystone_password   => $::openstack::config::glance_password,
-    auth_host           => $::openstack::config::controller_address_management,
-    keystone_tenant     => 'services',
-    keystone_user       => 'glance',
+    auth_uri            => "http://$controller_address:5000/",
+    identity_uri        => "http://$controller_address:35357/",
     database_connection => $database_connection,
     registry_host       => $::openstack::config::storage_address_management,
     verbose             => $::openstack::config::verbose,
@@ -34,21 +33,16 @@ class openstack::profile::glance::api {
   class { '::glance::registry':
     keystone_password   => $::openstack::config::glance_password,
     database_connection => $database_connection,
-    auth_host           => $::openstack::config::controller_address_management,
-    keystone_tenant     => 'services',
-    keystone_user       => 'glance',
+    auth_uri            => "http://$controller_address:5000/",
+    identity_uri        => "http://$controller_address:35357/",
     verbose             => $::openstack::config::verbose,
     debug               => $::openstack::config::debug,
-    mysql_module        => '2.2',
   }
 
   class { '::glance::notify::rabbitmq':
-    rabbit_password => $::openstack::config::rabbitmq_password,
-    rabbit_userid   => $::openstack::config::rabbitmq_user,
-    rabbit_host     => $::openstack::config::controller_address_management,
+    rabbit_password     => $::openstack::config::rabbitmq_password,
+    rabbit_userid       => 'glance',
+    rabbit_host         => $::openstack::config::controller_address_management,
+    notification_driver => 'messagingv2',
   }
-
-  $images = $::openstack::config::images
-
-  create_resources('glance_image', $images)
 }

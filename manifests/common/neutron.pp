@@ -23,7 +23,7 @@ class openstack::common::neutron {
     rabbit_host           => $controller_management_address,
     core_plugin           => $::openstack::config::neutron_core_plugin,
     allow_overlapping_ips => true,
-    rabbit_user           => $::openstack::config::rabbitmq_user,
+    rabbit_user           => 'neutron',
     rabbit_password       => $::openstack::config::rabbitmq_password,
     rabbit_hosts          => $::openstack::config::rabbitmq_hosts,
     debug                 => $::openstack::config::debug,
@@ -32,22 +32,20 @@ class openstack::common::neutron {
   }
 
   class { '::neutron::keystone::auth':
-    password         => $::openstack::config::neutron_password,
-    public_address   => $::openstack::config::controller_address_api,
-    admin_address    => $::openstack::config::controller_address_management,
-    internal_address => $::openstack::config::controller_address_management,
-    region           => $::openstack::config::region,
+    password     => $::openstack::config::neutron_password,
+    public_url   => "http://$::openstack::config::controller_address_api:9696",
+    admin_url    => "http://$controller_management_address:9696",
+    internal_url => "http://$controller_management_address:9696",
+    region       => $::openstack::config::region,
   }
 
   class { '::neutron::server':
-    auth_host           => $::openstack::config::controller_address_management,
+    auth_uri            => "http://$controller_management_address:5000",
+    identity_uri        => "http://$controller_management_address:35357",
     auth_password       => $::openstack::config::neutron_password,
     database_connection => $database_connection,
     enabled             => $is_controller,
     sync_db             => $is_controller,
-    mysql_module        => '2.2',
-    api_workers         => '0',
-    rpc_workers         => '0',
   }
 
   if $::osfamily == 'redhat' {
