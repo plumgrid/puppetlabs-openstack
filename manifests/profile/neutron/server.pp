@@ -19,7 +19,7 @@ class openstack::profile::neutron::server {
       mechanism_drivers    => $mechanism_drivers,
       tunnel_id_ranges     => $tunnel_id_ranges
     }
-  } elsif ($::openstack::config::neutron_core_plugin == 'plumgrid') {
+  } elsif ($::openstack::config::neutron_core_plugin == 'neutron.plugins.plumgrid.plumgrid_plugin.plumgrid_plugin.NeutronPluginPLUMgridV2') {
     $user = $::openstack::config::mysql_user_neutron
     $pass = $::openstack::config::mysql_pass_neutron
     $db_connection = "mysql://${user}:${pass}@${controller_management_address}/neutron"
@@ -45,10 +45,16 @@ class openstack::profile::neutron::server {
     }
     ->
     package { 'networking-plumgrid':
-      ensure   => present,
+      ensure   => '2015.1.1.1',
       provider => 'pip',
       notify   => Service["$::neutron::params::server_service"],
       require  => Package['python-pip'],
+    }
+    ->
+    file { '/tmp/pip-build-root/networking-plumgrid':
+      ensure  => absent,
+      recurse => true,
+      force   => true,
     }
   }
 
