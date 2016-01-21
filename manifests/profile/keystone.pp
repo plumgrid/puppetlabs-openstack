@@ -26,4 +26,8 @@ class openstack::profile::keystone {
     }
   }
 
+  $users   = $::openstack::config::keystone_users
+  $tenants = $::openstack::config::keystone_tenants
+  create_resources('openstack::resources::user', $users)
+  create_resources('keystone_tenant', $tenants)
 }

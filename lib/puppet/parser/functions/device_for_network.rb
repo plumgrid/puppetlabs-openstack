@@ -4,15 +4,14 @@ module Puppet::Parser::Functions
 
   newfunction(:device_for_network, :type => :rvalue, :doc => <<-EOS
 Returns the device for the given network in cidr notation
-
 device_for_network("127.0.0.0/24") => lo0
     EOS
-  ) do |args| 
-    devices_in_range = [] 
+  ) do |args|
+    devices_in_range = []
 
     range = IPAddr.new(args[0])
     facts = compiler.node.facts.values
-    ip_addresses = facts.select { |key, value| key =~ /^ipaddress/ }
+    ip_addresses = facts.select { |key, value| key.match /^ipaddress_(.*)/ }
 
     ip_addresses.each do |pair|
       key = pair[0]

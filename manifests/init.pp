@@ -256,8 +256,20 @@
 # [*plumgrid_nova_metdata_ip*]
 #   Nova metadata IP used by PLUMgrid platform
 #
-# [*plumgrid_nova_metdata_port*]
+# [*plumgrid_nova_metadata_port*]
 #   Nova metadata IP used by PLUMgrid platform
+#
+# [*l2gateway_vendor*]
+#   L2 gateway vendor used by PLUMgrid platform
+#
+# [*l2gateway_sw_username*]
+#   L2 gateway software username used by PLUMgrid platform
+#
+# [*l2gateway_sw_password*]
+#   L2 gateway software password used by PLUMgrid platform
+#
+# [*networking_plumgrid_version*]
+#   The networking-plumgrid plugin version
 #
 # [*neutron_tunneling*] (Deprecated)
 #   Boolean. Whether to enable Neutron tunneling.
@@ -376,82 +388,86 @@
 #
 class openstack (
   $use_hiera = false,
-  $region = 'RegionOne',
-  $network_api = "$mgmt_network",
+  $region = undef,
+  $network_api = undef,
   $networks = undef,
   $subnets = undef,
   $routers = undef,
   $router_interfaces = undef,
   $network_external = undef,
-  $network_management = "$mgmt_network",
-  $network_data = "$mgmt_network",
+  $network_management = undef,
+  $network_data = undef,
   $network_external_ippool_start = undef,
   $network_external_ippool_end = undef,
   $network_external_gateway = undef,
   $network_external_dns = undef,
   $network_neutron_private = undef,
-  $controller_address_api = "$ctr_ip",
-  $controller_address_management = "$ctr_ip",
-  $storage_address_api = "$ctr_ip",
-  $storage_address_management = "$ctr_ip",
-  $mysql_root_password = 'changeme',
+  $controller_address_api = undef,
+  $controller_address_management = undef,
+  $storage_address_api = undef,
+  $storage_address_management = undef,
+  $mysql_root_password = undef,
   $mysql_service_password = 'changeme',
-  $mysql_allowed_hosts = ['localhost','127.0.0.1','%'],
+  $mysql_allowed_hosts = [],
   $mysql_user_keystone = 'keystone',
-  $mysql_pass_keystone = 'changeme',
+  $mysql_pass_keystone = undef,
   $mysql_user_cinder = 'cinder',
-  $mysql_pass_cinder = 'changeme',
+  $mysql_pass_cinder = undef,
   $mysql_user_glance = 'glance',
-  $mysql_pass_glance = 'changeme',
+  $mysql_pass_glance = undef,
   $mysql_user_nova = 'nova',
-  $mysql_pass_nova = 'changeme',
+  $mysql_pass_nova = undef,
   $mysql_user_neutron = 'neutron',
-  $mysql_pass_neutron = 'changeme',
+  $mysql_pass_neutron = undef,
   $mysql_user_heat = 'heat',
-  $mysql_pass_heat = 'changeme',
-  $rabbitmq_hosts = ["$ctr_ip:5672"],
-  $rabbitmq_user = 'openstack',
-  $rabbitmq_password = 'guest',
-  $keystone_admin_token = 'changeme',
-  $keystone_admin_email = 'changeme@demo.com',
-  $keystone_admin_password = 'changeme',
+  $mysql_pass_heat = undef,
+  $rabbitmq_hosts =[],
+  $rabbitmq_user = undef,
+  $rabbitmq_password = undef,
+  $keystone_admin_token = undef,
+  $keystone_admin_email = undef,
+  $keystone_admin_password = undef,
   $keystone_tenants = {'test' => { 'description' => 'test_tenant'}},
   $keystone_users = {'test' => {'password' => 'abc123', 'tenant' => 'test', 'email' => 'test@example.com', 'admin' => 'true'}},
   $keystone_use_httpd = true,
-  $glance_password = 'changeme',
-  $glance_api_servers = ["$ctr_ip:9292"],
+  $glance_password = undef,
+  $glance_api_servers = [],
   $images = undef,
-  $cinder_password = 'changeme',
-  $cinder_volume_size = '4G',
-  $swift_password = 'changeme',
-  $swift_hash_suffix = 'changeme',
-  $nova_libvirt_type = $nova_libvirt_type,
-  $nova_password = 'changeme',
-  $neutron_password = 'changeme',
-  $neutron_shared_secret = 'changeme',
-  $neutron_core_plugin = 'ml2',
-  $neutron_service_plugins = ['router', 'lbaas', 'firewall', 'metering'],
-  $plumgrid_director_vip = '<Set_Directors_Virtual_IP_Here>',
-  $plumgrid_username = '<Set_PLUMgrid_Username_Here>',
-  $plumgrid_password = '<Set_PLUMgrid_Password_Here>',
-  $plumgrid_nova_metadata_ip = '169.254.169.254',
+  $cinder_password = undef,
+  $cinder_volume_size = undef,
+  $swift_password = undef,
+  $swift_hash_suffix = undef,
+  $nova_libvirt_type = undef,
+  $nova_password = undef,
+  $neutron_password = undef,
+  $neutron_shared_secret = undef,
+  $neutron_core_plugin = undef,
+  $neutron_service_plugins = [],
+  $plumgrid_director_vip = undef,
+  $plumgrid_username = undef,
+  $plumgrid_password = undef,
+  $plumgrid_nova_metadata_ip = undef,
   $plumgrid_nova_metadata_port = '8775',
-  $neutron_tunneling = true,
+  $l2gateway_vendor = undef,
+  $l2gateway_sw_username = undef,
+  $l2gateway_sw_password = undef,
+  $networking_plumgrid_version = undef,
+  $neutron_tunneling = false,
   $neutron_tunnel_types = ['gre'],
   $neutron_tenant_network_type = ['gre'],
   $neutron_type_drivers = ['gre'],
   $neutron_mechanism_drivers = ['openvswitch'],
   $neutron_tunnel_id_ranges = ['1:1000'],
-  $ceilometer_address_management = "$ctr_ip",
-  $ceilometer_mongo_username = 'changeme',
-  $ceilometer_mongo_password = 'changeme',
-  $ceilometer_password = 'changeme',
-  $ceilometer_meteringsecret = 'changeme',
-  $heat_password = 'changeme',
-  $heat_encryption_key = 'heatsecretkey123',
-  $horizon_secret_key = 'changeme',
-  $horizon_allowed_hosts = undef,
-  $horizon_server_aliases = undef,
+  $ceilometer_address_management = undef,
+  $ceilometer_mongo_username = undef,
+  $ceilometer_mongo_password = undef,
+  $ceilometer_password = undef,
+  $ceilometer_meteringsecret = undef,
+  $heat_password = undef,
+  $heat_encryption_key = undef,
+  $horizon_secret_key = undef,
+  $horizon_allowed_hosts = [],
+  $horizon_server_aliases = [],
   $tempest_configure_images    = undef,
   $tempest_image_name          = undef,
   $tempest_image_name_alt      = undef,
@@ -527,6 +543,10 @@ class openstack (
       plumgrid_password             => hiera(openstack::neutron::plumgrid_password),
       plumgrid_nova_metadata_ip     => hiera(openstack::neutron::plumgrid_nova_metadata_ip),
       plumgrid_nova_metadata_port   => hiera(openstack::neutron::plumgrid_nova_metadata_port),
+      l2gateway_vendor              => hiera(openstack::neutron::l2gateway_vendor),
+      l2gateway_sw_username         => hiera(openstack::neutron::l2gateway_sw_username),
+      l2gateway_sw_password         => hiera(openstack::neutron::l2gateway_sw_password),
+      networking_plumgrid_version   => hiera(openstack::neutron::networking_plumgrid_version),
       neutron_tunneling             => hiera(openstack::neutron::neutron_tunneling, $neutron_tunneling),
       neutron_tunnel_types          => hiera(openstack::neutron::neutron_tunnel_type, $neutron_tunnel_types),
       neutron_tenant_network_type   => hiera(openstack::neutron::neutron_tenant_network_type, $neutron_tenant_network_type),
@@ -623,6 +643,10 @@ class openstack (
       plumgrid_password             => $plumgrid_password,
       plumgrid_nova_metadata_ip     => $plumgrid_nova_metadata_ip,
       plumgrid_nova_metadata_port   => $plumgrid_nova_metadata_port,
+      l2gateway_vendor              => $l2gateway_vendor,
+      l2gateway_sw_username         => $l2gateway_sw_username,
+      l2gateway_sw_password         => $l2gateway_sw_password,
+      networking_plumgrid_version   => $networking_plumgrid_version,
       neutron_tunneling             => $neutron_tunneling,
       neutron_tunnel_types          => $neutron_tunnel_types,
       neutron_tenant_network_type   => $neutron_tenant_network_type,
@@ -637,8 +661,8 @@ class openstack (
       heat_password                 => $heat_password,
       heat_encryption_key           => $heat_encryption_key,
       horizon_secret_key            => $horizon_secret_key,
-      horizon_allowed_hosts         => [],
-      horizon_server_aliases        => [],
+      horizon_allowed_hosts         => $horizon_allowed_hosts,
+      horizon_server_aliases        => $horizon_server_aliases,
       verbose                       => $verbose,
       debug                         => $debug,
       tempest_configure_images      => $tempest_configure_images,
@@ -658,15 +682,4 @@ class openstack (
       tempest_swift_available       => $tempest_swift_available,
     }
   }
-
-  $ip_address = ip_for_network($mgmt_network)
-  $is_controller = ($ctr_ip in $ip_address)
-
-  if ($is_controller) {
-    class { openstack::role::controller: }
-  }
-  else {
-    class { openstack::role::compute: }
-  }
-
 }

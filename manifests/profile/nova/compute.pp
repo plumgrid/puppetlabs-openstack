@@ -16,6 +16,21 @@ class openstack::profile::nova::compute {
     vncproxy_host                 => $::openstack::config::controller_address_api,
   }
 
+  class { '::nova::api':
+    enabled                              => false,
+    admin_password                       => $::openstack::config::nova_password,
+    auth_host                            => $controller_management_address,
+    neutron_metadata_proxy_shared_secret => $::openstack::config::neutron_shared_secret,
+  }
+
+  if !defined(Service['openstack-nova-metadata-api']) {
+    service { 'openstack-nova-metadata-api':
+      ensure  => running,
+      enable  => true,
+      require => Class['::nova::api'],
+    }
+  }
+
   class { '::nova::compute::libvirt':
     libvirt_virt_type => $::openstack::config::nova_libvirt_type,
     vncserver_listen  => $management_address[0],

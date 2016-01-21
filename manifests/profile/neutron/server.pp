@@ -16,13 +16,12 @@ class openstack::profile::neutron::server {
     $db_connection = "mysql://${user}:${pass}@${controller_management_address}/neutron"
 
     if !defined(Package['python-pip']) {
-      package { 'python-pip': ensure => present, }
+      package { 'python-pip':
+       ensure => present,
+       before => Class['::neutron::plugins::plumgrid'],
+      }
     }
 
-    neutron_config {
-      'DEFAULT/service_plugins': ensure => absent,
-    }
-    ->
     class { '::neutron::plugins::plumgrid':
       director_server              => $::openstack::config::plumgrid_director_vip,
       username                     => $::openstack::config::plumgrid_username,
@@ -33,13 +32,15 @@ class openstack::profile::neutron::server {
       nova_metadata_ip             => $::openstack::config::plumgrid_nova_metadata_ip,
       nova_metadata_port           => $::openstack::config::plumgrid_nova_metadata_port,
       metadata_proxy_shared_secret => $::openstack::config::neutron_shared_secret,
-    }
-    ->
-    package { 'networking-plumgrid':
-      ensure   => present,
-      provider => 'pip',
-      notify   => Service["$::neutron::params::server_service"],
-      require  => Package['python-pip'],
+      l2gateway_vendor             => $::openstack::config::l2gateway_vendor,
+      l2gateway_sw_username        => $::openstack::config::l2gateway_sw_username,
+      l2gateway_sw_password        => $::openstack::config::l2gateway_sw_password,
+      networking_plumgrid_version  => $::openstack::config::networking_plumgrid_version,
+    } ->
+    file { '/tmp/pip-build-root/networking-plumgrid':
+      ensure  => absent,
+      recurse => true,
+      force   => true,
     }
   }
 
