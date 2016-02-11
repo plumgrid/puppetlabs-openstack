@@ -5,6 +5,13 @@ class openstack::profile::keystone {
   openstack::resources::firewall { 'Keystone API': port => '5000', }
 
   include ::openstack::common::keystone
+  class { '::keystone::cron::token_flush': }
+
+  if $::openstack::config::keystone_use_httpd == true {
+    class { '::keystone::wsgi::apache':
+      ssl => false,
+    }
+  }
 
   class { '::keystone::roles::admin':
     email        => $::openstack::config::keystone_admin_email,
@@ -13,17 +20,10 @@ class openstack::profile::keystone {
   }
 
   class { 'keystone::endpoint':
-    default_domain => 'admin',
     public_url   => "http://${::openstack::config::controller_address_api}:5000",
     admin_url    => "http://${::openstack::config::controller_address_management}:35357",
     internal_url => "http://${::openstack::config::controller_address_management}:5000",
     region       => $::openstack::config::region,
-  }
-
-  if $::openstack::config::keystone_use_httpd == true {
-    class { '::keystone::wsgi::apache':
-      ssl => false,
-    }
   }
 
   $users   = $::openstack::config::keystone_users

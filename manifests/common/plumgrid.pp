@@ -8,12 +8,11 @@ class openstack::common::plumgrid {
   # this is required for the vms to pass through the gateways public interface
   sysctl::value { 'net.ipv4.ip_forward': value => '1' }
 
-  # ifc_ctl_pp needs to be invoked by root as part of the vif.py when a VM is powered on
-  file { '/etc/sudoers.d/ifc_ctl_sudoers':
+  file { '/etc/nova/rootwrap.d/plumgrid.filters':
     ensure  => file,
     owner   => root,
     group   => root,
-    mode    => '0440',
-    content => "nova ALL=(root) NOPASSWD: /opt/pg/bin/ifc_ctl_pp *\n",
+    mode    => '0644',
+    source  => "puppet:///modules/openstack/plumgrid.filters",
   }
 }

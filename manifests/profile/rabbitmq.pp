@@ -30,10 +30,12 @@ class openstack::profile::rabbitmq {
   }
 
   #https://bugzilla.redhat.com/show_bug.cgi?id=505266
-  if !defined(Package['fprintd-pam']) {
-    package { 'fprintd-pam':
-      ensure => present,
-      before => Class['::rabbitmq'],
+  if $::osfamily == 'RedHat' {
+    if !defined(Package['fprintd-pam']) {
+      package { 'fprintd-pam':
+        ensure => present,
+        before => Class['::rabbitmq'],
+      }
     }
   }
 }

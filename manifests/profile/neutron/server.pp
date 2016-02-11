@@ -15,11 +15,19 @@ class openstack::profile::neutron::server {
     $pass = $::openstack::config::mysql_pass_neutron
     $db_connection = "mysql://${user}:${pass}@${controller_management_address}/neutron"
 
-    if !defined(Package['python-pip']) {
-      package { 'python-pip':
-       ensure => present,
-       before => Class['::neutron::plugins::plumgrid'],
+    if($::osfamily == 'Redhat') {
+      if !defined(Package['python-pip']) {
+        package { 'python-pip':
+          ensure => present,
+          before => Class['::neutron::plugins::plumgrid'],
+        }
       }
+    } elsif $::operatingsystem == 'Ubuntu' {
+        exec { 'install pip':
+         command => '/usr/bin/easy_install pip==7.1.2',
+         creates => '/usr/local/lib/python2.7/dist-packages/pip-7.1.2-py2.7.egg',
+         before => Class['::neutron::plugins::plumgrid'],
+        }
     }
 
     class { '::neutron::plugins::plumgrid':
@@ -35,7 +43,7 @@ class openstack::profile::neutron::server {
       l2gateway_vendor             => $::openstack::config::l2gateway_vendor,
       l2gateway_sw_username        => $::openstack::config::l2gateway_sw_username,
       l2gateway_sw_password        => $::openstack::config::l2gateway_sw_password,
-      networking_plumgrid_version  => $::openstack::config::networking_plumgrid_version,
+      package_ensure               => $::openstack::config::networking_plumgrid_version,
     } ->
     file { '/tmp/pip-build-root/networking-plumgrid':
       ensure  => absent,

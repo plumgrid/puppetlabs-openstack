@@ -1,6 +1,6 @@
 class openstack::role::controller inherits ::openstack::role {
   class { '::openstack::profile::firewall': }
-  class { '::openstack::profile::openstack_selinux': } ->
+  class { '::openstack::profile::openstack_security': } ->
   class { '::openstack::profile::rabbitmq': } ->
   class { '::openstack::profile::memcache': } ->
   class { '::openstack::profile::mysql': } ->

@@ -6,6 +6,7 @@ class openstack::profile::plumgrid (
   $rest_port = '',
   $fabric_net = '',
   $fabric_mode = '',
+  $gateway_devs = [],
   $lvm_keypath = '',
 ) inherits ::openstack::role {
 
@@ -19,6 +20,12 @@ class openstack::profile::plumgrid (
   $fabric_dev                = device_for_network($fabric_net)
   notify {"fabric_dev = ${fabric_dev}":}
 
+  if $::operatingsystem == 'Ubuntu' {
+    package { 'iovisor-dkms':
+      ensure => present,
+    }
+  }
+
   class { ::plumgrid:
     plumgrid_ip   => $plumgrid_ip,
     plumgrid_port => $plumgrid_port,
@@ -26,9 +33,12 @@ class openstack::profile::plumgrid (
     mgmt_dev      => $mgmt_dev,
     fabric_dev    => $fabric_dev,
     fabric_mode   => $fabric_mode,
+    gateway_devs  => $gateway_devs,
     lvm_keypath   => $lvm_keypath,
+    manage_repo   => false,
     source_net    => $::openstack::config::network_management,
     dest_net      => $::openstack::config::network_management,
+    require       => Class['::openstack::profile::openstack_selinux'],
   }
   if ($is_director) {
     class { ::sal:
