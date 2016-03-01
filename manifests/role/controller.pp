@@ -1,12 +1,11 @@
 class openstack::role::controller inherits ::openstack::role {
   class { '::openstack::profile::firewall': }
+  class { '::openstack::profile::openstack_security': } ->
   class { '::openstack::profile::rabbitmq': } ->
   class { '::openstack::profile::memcache': } ->
   class { '::openstack::profile::mysql': } ->
   class { '::openstack::profile::mongodb': } ->
   class { '::openstack::profile::keystone': } ->
-  class { '::openstack::profile::swift::proxy': } ->
-  class { '::openstack::profile::ceilometer::api': } ->
   class { '::openstack::profile::glance::auth': } ->
   class { '::openstack::profile::glance::api': } ->
   class { '::openstack::profile::cinder::api': } ->

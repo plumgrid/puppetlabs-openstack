@@ -5,11 +5,15 @@ define openstack::resources::user (
   $admin   = false,
   $enabled = true,
 ) {
+
+  keystone_role { '_member_':
+    ensure => present,
+  }
+
   keystone_user { $name:
     ensure   => present,
     enabled  => $enabled,
     password => $password,
-    tenant   => $tenant,
     email    => $email,
   }
 

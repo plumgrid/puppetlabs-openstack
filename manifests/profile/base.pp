@@ -7,7 +7,7 @@ class openstack::profile::base {
   include ::ntp
 
   # all nodes need the OpenStack repository
-  class { '::openstack::resources::repo': }
+  #class { '::openstack::resources::repo': }
 
   # database anchor
   anchor { 'database-service': }

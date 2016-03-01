@@ -4,6 +4,12 @@ class openstack::profile::nova::compute {
   $management_address            = ip_for_network($management_network)
   $controller_management_address = $::openstack::config::controller_address_management
 
+  if($::osfamily == 'Redhat') {
+    $enable_nova_api = false
+  } elsif $::operatingsystem == 'Ubuntu' {
+    $enable_nova_api = true
+  }
+
   openstack::resources::firewall { 'Nova API': port => '8774', }
   openstack::resources::firewall { 'Nova Metadata': port => '8775', }
 
@@ -17,16 +23,19 @@ class openstack::profile::nova::compute {
   }
 
   class { '::nova::api':
+    enabled                              => $enable_nova_api,
     admin_password                       => $::openstack::config::nova_password,
     auth_host                            => $controller_management_address,
     neutron_metadata_proxy_shared_secret => $::openstack::config::neutron_shared_secret,
   }
 
-  if !defined(Service['openstack-nova-metadata-api']) {
-    service { 'openstack-nova-metadata-api':
-      ensure  => running,
-      enable  => true,
-      require => Class['::nova::api'],
+  if($::osfamily == 'Redhat') {
+    if !defined(Service['openstack-nova-metadata-api']) {
+      service { 'openstack-nova-metadata-api':
+        ensure  => running,
+        enable  => true,
+        require => Class['::nova::api'],
+      }
     }
   }
 

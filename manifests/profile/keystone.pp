@@ -5,6 +5,13 @@ class openstack::profile::keystone {
   openstack::resources::firewall { 'Keystone API': port => '5000', }
 
   include ::openstack::common::keystone
+  class { '::keystone::cron::token_flush': }
+
+  if $::openstack::config::keystone_use_httpd == true {
+    class { '::keystone::wsgi::apache':
+      ssl => false,
+    }
+  }
 
   class { '::keystone::roles::admin':
     email        => $::openstack::config::keystone_admin_email,
@@ -19,14 +26,8 @@ class openstack::profile::keystone {
     region       => $::openstack::config::region,
   }
 
-  if $::openstack::config::keystone_use_httpd == true {
-    class { '::keystone::wsgi::apache':
-      ssl => false,
-    }
-  }
-
-  $tenants = $::openstack::config::keystone_tenants
   $users   = $::openstack::config::keystone_users
-  create_resources('keystone_tenant', $tenants)
+  $tenants = $::openstack::config::keystone_tenants
   create_resources('openstack::resources::user', $users)
+  create_resources('keystone_tenant', $tenants)
 }

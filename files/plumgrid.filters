@@ -1,0 +1,3 @@
+[Filters]
+ifc-ctl-pp: CommandFilter, /opt/pg/bin/ifc_ctl_pp, root
+ifc-ctl: CommandFilter, /opt/pg/bin/ifc_ctl, root

@@ -6,32 +6,30 @@ class openstack::profile::neutron::server {
 
   include ::openstack::common::neutron
 
-  $tenant_network_type           = $::openstack::config::neutron_tenant_network_type # ['gre']
-  $type_drivers                  = $::openstack::config::neutron_type_drivers # ['gre']
-  $mechanism_drivers             = $::openstack::config::neutron_mechanism_drivers # ['openvswitch']
-  $tunnel_id_ranges              = $::openstack::config::neutron_tunnel_id_ranges # ['1:1000']
   $controller_management_address = $::openstack::config::controller_address_management
 
   if ($::openstack::config::neutron_core_plugin == 'ml2') {
-    class  { '::neutron::plugins::ml2':
-      type_drivers         => $type_drivers,
-      tenant_network_types => $tenant_network_type,
-      mechanism_drivers    => $mechanism_drivers,
-      tunnel_id_ranges     => $tunnel_id_ranges
-    }
+
   } elsif ($::openstack::config::neutron_core_plugin == 'plumgrid') {
     $user = $::openstack::config::mysql_user_neutron
     $pass = $::openstack::config::mysql_pass_neutron
     $db_connection = "mysql://${user}:${pass}@${controller_management_address}/neutron"
 
-    if !defined(Package['python-pip']) {
-      package { 'python-pip': ensure => present, }
+    if($::osfamily == 'Redhat') {
+      if !defined(Package['python-pip']) {
+        package { 'python-pip':
+          ensure => present,
+          before => Class['::neutron::plugins::plumgrid'],
+        }
+      }
+    } elsif $::operatingsystem == 'Ubuntu' {
+        exec { 'install pip':
+         command => '/usr/bin/easy_install pip==7.1.2',
+         creates => '/usr/local/lib/python2.7/dist-packages/pip-7.1.2-py2.7.egg',
+         before => Class['::neutron::plugins::plumgrid'],
+        }
     }
 
-    neutron_config {
-      'DEFAULT/service_plugins': ensure => absent,
-    }
-    ->
     class { '::neutron::plugins::plumgrid':
       director_server              => $::openstack::config::plumgrid_director_vip,
       username                     => $::openstack::config::plumgrid_username,
@@ -42,22 +40,24 @@ class openstack::profile::neutron::server {
       nova_metadata_ip             => $::openstack::config::plumgrid_nova_metadata_ip,
       nova_metadata_port           => $::openstack::config::plumgrid_nova_metadata_port,
       metadata_proxy_shared_secret => $::openstack::config::neutron_shared_secret,
-    }
-    ->
-    package { 'networking-plumgrid':
-      ensure   => present,
-      provider => 'pip',
-      notify   => Service["$::neutron::params::server_service"],
-      require  => Package['python-pip'],
+      l2gateway_vendor             => $::openstack::config::l2gateway_vendor,
+      l2gateway_sw_username        => $::openstack::config::l2gateway_sw_username,
+      l2gateway_sw_password        => $::openstack::config::l2gateway_sw_password,
+      package_ensure               => $::openstack::config::networking_plumgrid_version,
+    } ->
+    file { '/tmp/pip-build-root/networking-plumgrid':
+      ensure  => absent,
+      recurse => true,
+      force   => true,
     }
   }
 
   anchor { 'neutron_common_first': } ->
   class { '::neutron::server::notifications':
-    nova_url            => "http://${controller_management_address}:8774/v2/",
-    nova_admin_auth_url => "http://${controller_management_address}:35357/v2.0/",
-    nova_admin_password => $::openstack::config::nova_password,
-    nova_region_name    => $::openstack::config::region,
+    nova_url    => "http://${controller_management_address}:8774/v2",
+    auth_url    => "http://${controller_management_address}:35357",
+    password    => $::openstack::config::nova_password,
+    region_name => $::openstack::config::region,
   } ->
   anchor { 'neutron_common_last': }
 

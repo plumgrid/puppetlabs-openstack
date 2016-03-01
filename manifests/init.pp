@@ -256,8 +256,20 @@
 # [*plumgrid_nova_metdata_ip*]
 #   Nova metadata IP used by PLUMgrid platform
 #
-# [*plumgrid_nova_metdata_port*]
+# [*plumgrid_nova_metadata_port*]
 #   Nova metadata IP used by PLUMgrid platform
+#
+# [*l2gateway_vendor*]
+#   L2 gateway vendor used by PLUMgrid platform
+#
+# [*l2gateway_sw_username*]
+#   L2 gateway software username used by PLUMgrid platform
+#
+# [*l2gateway_sw_password*]
+#   L2 gateway software password used by PLUMgrid platform
+#
+# [*networking_plumgrid_version*]
+#   The networking-plumgrid plugin version
 #
 # [*neutron_tunneling*] (Deprecated)
 #   Boolean. Whether to enable Neutron tunneling.
@@ -375,7 +387,7 @@
 #   Boolean. If Swift services are available.
 #
 class openstack (
-  $use_hiera = true,
+  $use_hiera = false,
   $region = undef,
   $network_api = undef,
   $networks = undef,
@@ -395,31 +407,31 @@ class openstack (
   $storage_address_api = undef,
   $storage_address_management = undef,
   $mysql_root_password = undef,
-  $mysql_service_password = undef,
-  $mysql_allowed_hosts = undef,
-  $mysql_user_keystone = undef,
+  $mysql_service_password = 'changeme',
+  $mysql_allowed_hosts = [],
+  $mysql_user_keystone = 'keystone',
   $mysql_pass_keystone = undef,
-  $mysql_user_cinder = undef,
+  $mysql_user_cinder = 'cinder',
   $mysql_pass_cinder = undef,
-  $mysql_user_glance = undef,
+  $mysql_user_glance = 'glance',
   $mysql_pass_glance = undef,
-  $mysql_user_nova = undef,
+  $mysql_user_nova = 'nova',
   $mysql_pass_nova = undef,
-  $mysql_user_neutron = undef,
+  $mysql_user_neutron = 'neutron',
   $mysql_pass_neutron = undef,
-  $mysql_user_heat = undef,
+  $mysql_user_heat = 'heat',
   $mysql_pass_heat = undef,
-  $rabbitmq_hosts = undef,
+  $rabbitmq_hosts =[],
   $rabbitmq_user = undef,
   $rabbitmq_password = undef,
   $keystone_admin_token = undef,
   $keystone_admin_email = undef,
   $keystone_admin_password = undef,
-  $keystone_tenants = undef,
-  $keystone_users = undef,
-  $keystone_use_httpd = false,
+  $keystone_tenants = {'test' => { 'description' => 'test_tenant'}},
+  $keystone_users = {'test' => {'password' => 'abc123', 'tenant' => 'test', 'email' => 'test@example.com', 'admin' => 'true'}},
+  $keystone_use_httpd = true,
   $glance_password = undef,
-  $glance_api_servers = undef,
+  $glance_api_servers = [],
   $images = undef,
   $cinder_password = undef,
   $cinder_volume_size = undef,
@@ -430,13 +442,17 @@ class openstack (
   $neutron_password = undef,
   $neutron_shared_secret = undef,
   $neutron_core_plugin = undef,
-  $neutron_service_plugins = undef,
+  $neutron_service_plugins = [],
   $plumgrid_director_vip = undef,
   $plumgrid_username = undef,
   $plumgrid_password = undef,
   $plumgrid_nova_metadata_ip = undef,
-  $plumgrid_nova_metadata_port = undef,
-  $neutron_tunneling = true,
+  $plumgrid_nova_metadata_port = '8775',
+  $l2gateway_vendor = undef,
+  $l2gateway_sw_username = undef,
+  $l2gateway_sw_password = undef,
+  $networking_plumgrid_version = undef,
+  $neutron_tunneling = false,
   $neutron_tunnel_types = ['gre'],
   $neutron_tenant_network_type = ['gre'],
   $neutron_type_drivers = ['gre'],
@@ -450,8 +466,8 @@ class openstack (
   $heat_password = undef,
   $heat_encryption_key = undef,
   $horizon_secret_key = undef,
-  $horizon_allowed_hosts = undef,
-  $horizon_server_aliases = undef,
+  $horizon_allowed_hosts = [],
+  $horizon_server_aliases = [],
   $tempest_configure_images    = undef,
   $tempest_image_name          = undef,
   $tempest_image_name_alt      = undef,
@@ -467,8 +483,8 @@ class openstack (
   $tempest_neutron_available   = undef,
   $tempest_heat_available      = undef,
   $tempest_swift_available     = undef,
-  $verbose = undef,
-  $debug = undef,
+  $verbose = false,
+  $debug = false,
 ) {
   if $use_hiera {
     class { '::openstack::config':
@@ -527,6 +543,10 @@ class openstack (
       plumgrid_password             => hiera(openstack::neutron::plumgrid_password),
       plumgrid_nova_metadata_ip     => hiera(openstack::neutron::plumgrid_nova_metadata_ip),
       plumgrid_nova_metadata_port   => hiera(openstack::neutron::plumgrid_nova_metadata_port),
+      l2gateway_vendor              => hiera(openstack::neutron::l2gateway_vendor),
+      l2gateway_sw_username         => hiera(openstack::neutron::l2gateway_sw_username),
+      l2gateway_sw_password         => hiera(openstack::neutron::l2gateway_sw_password),
+      networking_plumgrid_version   => hiera(openstack::neutron::networking_plumgrid_version),
       neutron_tunneling             => hiera(openstack::neutron::neutron_tunneling, $neutron_tunneling),
       neutron_tunnel_types          => hiera(openstack::neutron::neutron_tunnel_type, $neutron_tunnel_types),
       neutron_tenant_network_type   => hiera(openstack::neutron::neutron_tenant_network_type, $neutron_tenant_network_type),
@@ -623,6 +643,10 @@ class openstack (
       plumgrid_password             => $plumgrid_password,
       plumgrid_nova_metadata_ip     => $plumgrid_nova_metadata_ip,
       plumgrid_nova_metadata_port   => $plumgrid_nova_metadata_port,
+      l2gateway_vendor              => $l2gateway_vendor,
+      l2gateway_sw_username         => $l2gateway_sw_username,
+      l2gateway_sw_password         => $l2gateway_sw_password,
+      networking_plumgrid_version   => $networking_plumgrid_version,
       neutron_tunneling             => $neutron_tunneling,
       neutron_tunnel_types          => $neutron_tunnel_types,
       neutron_tenant_network_type   => $neutron_tenant_network_type,
@@ -637,8 +661,8 @@ class openstack (
       heat_password                 => $heat_password,
       heat_encryption_key           => $heat_encryption_key,
       horizon_secret_key            => $horizon_secret_key,
-      horizon_allowed_hosts         => [],
-      horizon_server_aliases        => [],
+      horizon_allowed_hosts         => $horizon_allowed_hosts,
+      horizon_server_aliases        => $horizon_server_aliases,
       verbose                       => $verbose,
       debug                         => $debug,
       tempest_configure_images      => $tempest_configure_images,
