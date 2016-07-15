@@ -38,7 +38,7 @@ class openstack::profile::plumgrid (
     manage_repo   => false,
     source_net    => $::openstack::config::network_management,
     dest_net      => $::openstack::config::network_management,
-    require       => Class['::openstack::profile::openstack_selinux'],
+    require       => Class['::openstack::profile::openstack_security'],
   }
   if ($is_director) {
     class { ::sal:
